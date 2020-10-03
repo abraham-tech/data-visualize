@@ -1,4 +1,5 @@
-import React, { Component } from "react";
+// import React, { Component } from "react";
+import React, { useState } from "react";
 import LineChart from "./core/LineChart";
 import PieChart from "./core/PieChart";
 import Country from "./components/Country";
@@ -6,86 +7,68 @@ import Duration from "./components/Duration";
 import Utils from "./utils"
 import "./style.css";
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      error: null,
-      isLoaded: false,
-      countries: [],
-      startDate: 1,
-      endDate: 30
-    };
-  }
+const App = () => {
+  const [error, setError] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
+  const [countries, setCountries] = useState([])
+  const [startDate, setStartDate] = useState(1)
+  const [endDate, setEndDate] = useState(10)
 
-  //Fetch data when the component is mounted
-  componentDidMount() {
+  React.useEffect(()=> {
+    getCountries()
+
+  },[]);
+
+  const getCountries = () => {
     fetch("http://my-json-server.typicode.com/yisehak-awm/finbit-hiring/result")
-      .then(res => res.json())
-      .then(
-        (result) => {
-          this.setState({
-            isLoaded: true,
-            countries: result.map(country => {
-              return {
-                ...country,
-                isChecked: false
-              }
-            })
-          });
-        },
-        (error) => {
-          this.setState({
-            isLoaded: true,
-            error
-          });
-        }
-      )
+    .then(res => res.json())
+    .then(
+      (result) => {
+        setCountries(
+          result.map((data,index)=> {
+            data.isChecked = false;
+            if(index == 0){
+              data.isChecked = true;
+            }
+            return data;
+          })
+        );  
+        setIsLoaded(true)
+      },
+      (error) => {
+        setIsLoaded(true);
+        setError(error)
+      }
+    )
   }
 
-  //check/uncheck country checkbox 
-  toggleChechedCountry = country => {
-    this.setState({
-      countries: this.state.countries.map((countryData) => {
-        debugger
-        if (country === countryData.country) {
-          return {
-            ...countryData,
-            isChecked: !countryData.isChecked
-          }
+  const toggleCheckedCountry = country => {
+    setCountries(
+      countries.map(data => {
+        if(country == data.country){
+          data.isChecked = !data.isChecked
         }
-        return countryData
+        return data
       })
-    });
+    );
   }
-
-  //Handling start date duration change
-  handleStartDate = date => this.setState({ startDate: date })
-
-  //Handling end date duration change
-  handleEndDate = date => this.setState({ endDate: date })
-
-
-  render() {
-    const { error, isLoaded, countries, startDate, endDate } = this.state;
-    const { country, data } = Utils.getPieChartData(countries, startDate, endDate);
 
     if (error) {
       return <div>Error: {error.message}</div>;
     } else if (!isLoaded) {
       return <div>Loading...</div>;
     } else {
+
       return (
         <div className="App">
-          <h1>Data has been loaded! Use filters below to display it</h1>
-          <h4>Countries</h4>
-
+          <h2>Countries</h2>
+          
           {countries.map((country) =>
             <Country
               key={country.country}
               country={country.country}
               isChecked={country.isChecked}
-              handleCheckedCountry={() => this.toggleChechedCountry(country.country)}
+              handleCheckedCountry={() => toggleCheckedCountry(country.country)}
             />
           )}
 
@@ -93,8 +76,8 @@ class App extends React.Component {
           <Duration
             startDate={startDate}
             endDate={endDate}
-            handleStartDate={this.handleStartDate}
-            handleEndDate={this.handleEndDate}
+            handleStartDate={date => setStartDate(date)}
+            handleEndDate={date => setEndDate(date)}
           />
           {"" != Utils.getMostAffectedCountry(countries, startDate, endDate) ? (
             <div>
@@ -116,8 +99,7 @@ class App extends React.Component {
           }
         </div>
       )
-    }
-  }
+    }  
 }
 
 export default App;
