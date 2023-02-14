@@ -1,14 +1,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+const COUNTER_ARRAY = Array.from({length: 30}, (_, index) => index + 1);
 const Duration = props =>  
-    <div>
+    <>
         <label> Start date </label>    
         <select
             value={props.startDate}
             onChange={ (e) =>props.handleStartDate(e.target.value)}
             >
-            { Array.from(new Array(30), (val, index) => index + 1).map((value) => (<option key={value} value={value}>{value}</option>))}
+            { COUNTER_ARRAY.map((value) => (<option key={value} value={value}>{value}</option>))}
         </select>
 
         <label> End date </label>
@@ -16,9 +17,9 @@ const Duration = props =>
             value={props.endDate}
             onChange={ (e) => props.handleEndDate(e.target.value) }
             >
-            { Array.from(new Array(30), (val, index) => index + 1).map((value) => (<option key={value} value={value}>{value}</option>))}
+            { COUNTER_ARRAY.map((value) => (<option key={value} value={value}>{value}</option>))}
         </select>
-    </div>
+    </>
 
     
 Duration.propTypes = {

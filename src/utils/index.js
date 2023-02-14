@@ -1,54 +1,34 @@
 const Utils = {
     getLineChartData: (countries, startDate, endDate) => {
-      const lineChartData = [];
-      countries.map((countryData) => {
-        if (countryData.isChecked) {
-          const data = [];
-          countryData.records.forEach(record => {
-            if (record.day >= startDate && record.day <= endDate) {
-              let x = {
-                x: record.day,
-                y: record.new
-              }
-              data.push(x);
-            }
-          })
-          let temp = {
-            id: countryData.country,
-            data: data
-          };
-  
-          lineChartData.push(temp);
-        }
-      })
-  
-      return lineChartData;
+      return countries
+        .filter((countryData) => countryData.isChecked)
+        .map((countryData) => {
+          const data = countryData.records
+            .filter((record) => record.day >= startDate && record.day <= endDate)
+            .map((record) => ({ x: record.day, y: record.new }));
+          return { id: countryData.country, data };
+        });
     },
   
     getMostAffectedCountry: (countries, startDate, endDate) => {
-      let country = "";
-      let prevTotalAffected = 0;
-      countries.map((countryData) => {
-        if (countryData.isChecked) {
-          let currentCountryTotalAffected = 0;
-          countryData.records.forEach(record => {
-            if (record.day >= startDate && record.day <= endDate) {
-              currentCountryTotalAffected += record.new;
-            }
-          })
-          if (currentCountryTotalAffected > prevTotalAffected) {
-            prevTotalAffected = currentCountryTotalAffected;
-            country = countryData.country;
-          }
+      return countries
+      .filter((countryData) => countryData.isChecked)
+      .reduce((mostAffectedCountry, countryData) => {
+        const currentCountryTotalAffected = countryData.records
+          .filter((record) => record.day >= startDate && record.day <= endDate)
+          .reduce((sum, record) => sum + record.new, 0);
+        if (currentCountryTotalAffected > mostAffectedCountry.totalAffected) {
+          return { country: countryData.country, totalAffected: currentCountryTotalAffected };
+        } else {
+          return mostAffectedCountry;
         }
-      })
-  
-      return country;
+      }, { country: "", totalAffected: 0 })
+      .country;
     },
   
     getPieChartData: (countries, startDate, endDate) => {
   
-      if ("" != Utils.getMostAffectedCountry(countries, startDate, endDate)) {
+      if ("" !== Utils.getMostAffectedCountry(countries, startDate, endDate)) {
         let x = 0;
         let y = 0;
         let z = 0;

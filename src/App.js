@@ -1,5 +1,4 @@
-// import React, { Component } from "react";
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import LineChart from "./core/LineChart";
 import PieChart from "./core/PieChart";
 import Country from "./components/Country";
@@ -14,38 +13,32 @@ const App = () => {
   const [startDate, setStartDate] = useState(1)
   const [endDate, setEndDate] = useState(10)
 
-  React.useEffect(()=> {
-    getCountries()
-
-  },[]);
-
-  const getCountries = () => {
-    fetch("http://my-json-server.typicode.com/yisehak-awm/finbit-hiring/result")
-    .then(res => res.json())
-    .then(
-      (result) => {
-        setCountries(
-          result.map((data,index)=> {
-            data.isChecked = false;
-            if(index == 0){
-              data.isChecked = true;
-            }
-            return data;
-          })
-        );  
-        setIsLoaded(true)
-      },
-      (error) => {
-        setIsLoaded(true);
-        setError(error)
+  const cleanUpCountryData = (data) => {
+    return data.map((data,index)=> {
+      data.isChecked = false;
+      if(index === 0){
+        data.isChecked = true;
       }
-    )
+      return data;
+    })
   }
+
+  const fetchCountries = useCallback(async () => {
+    try {
+      const response =  await fetch("http://my-json-server.typicode.com/yisehak-awm/finbit-hiring/result")
+      const result = await response.json();
+      const countries = cleanUpCountryData(result);
+      setCountries(countries);
+      setIsLoaded(true);
+    } catch(err){
+      setError(err)
+    }
+  },[setCountries, setIsLoaded, setError])
 
   const toggleCheckedCountry = country => {
     setCountries(
       countries.map(data => {
-        if(country == data.country){
+        if(country === data.country){
           data.isChecked = !data.isChecked
         }
         return data
@@ -53,12 +46,15 @@ const App = () => {
     );
   }
 
+  useEffect(()=> {
+    fetchCountries()
+  },[fetchCountries]);
+
     if (error) {
       return <div>Error: {error.message}</div>;
     } else if (!isLoaded) {
       return <div>Loading...</div>;
     } else {
-
       return (
         <div className="App">
           <h2>Countries</h2>
@@ -79,7 +75,7 @@ const App = () => {
             handleStartDate={date => setStartDate(date)}
             handleEndDate={date => setEndDate(date)}
           />
-          {"" != Utils.getMostAffectedCountry(countries, startDate, endDate) ? (
+          {"" !== Utils.getMostAffectedCountry(countries, startDate, endDate) ? (
             <div>
 
               <LineChart
